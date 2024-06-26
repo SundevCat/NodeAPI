@@ -5,6 +5,10 @@ const ProductSchema = new mongoose.Schema({
     prod_desc: String,
     prod_price: Number,
     updated_at: { type: Date, default: Date.now }
-})
+},
+{
+    collection: "Product"
+}
+)
 
 module.exports = mongoose.model('Product', ProductSchema)

@@ -4,16 +4,16 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 const mongoose = require('mongoose');
-
+const cors = require("cors")
 const products = require('./routes/products');
-
+const users = require('./routes/users')
+const imageDetails = require('./routes/imageDetails');
 
 mongoose.Promise = global.Promise;
 
 mongoose.connect('mongodb+srv://admin:1234@customer.ddbyyg7.mongodb.net/?retryWrites=true&w=majority&appName=customer')
   .then(() => console.log('Database Connected successfully'))
   .catch((err) => console.error(err));
-
 
 
 var indexRouter = require('./routes/index');
@@ -25,14 +25,17 @@ var app = express();
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
 
+app.use(cors());
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+app.use('/upload',express.static('uploads'))
 app.use('/', indexRouter);
-app.use('/users', usersRouter);
+app.use('/users', users);
+app.use('/image', imageDetails);
 app.use('/products', products);
 
 // catch 404 and forward to error handler
