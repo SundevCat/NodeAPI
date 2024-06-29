@@ -11,7 +11,7 @@ const imageDetails = require('./routes/imageDetails');
 
 mongoose.Promise = global.Promise;
 
-mongoose.connect('mongodb+srv://admin:1234@customer.ddbyyg7.mongodb.net/?retryWrites=true&w=majority&appName=customer')
+mongoose.connect('mongodb+srv://admin:1234@customer.ddbyyg7.mongodb.net/facebook?retryWrites=true&w=majority&appName=customer')
   .then(() => console.log('Database Connected successfully'))
   .catch((err) => console.error(err));
 

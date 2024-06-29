@@ -3,13 +3,17 @@ const mongoose = require('mongoose')
 const UserSchema = new mongoose.Schema(
     {
         userName: String,
+        userLastName: String,
         userEmail: String,
-        userPhone: Number,
-        userImage: String,
-        userStory: String,
+        password: String,
+        image: String,
+        story: String,
+        userGender: String,
+        userDate: String,
+        statusLogin: Number,
         update_at: {
             type: Date,
-            default: Date.now
+            default: Date.now()
         }
 
     },
