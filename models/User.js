@@ -10,7 +10,6 @@ const UserSchema = new mongoose.Schema(
         story: String,
         userGender: String,
         userDate: String,
-        statusLogin: Number,
         update_at: {
             type: Date,
             default: Date.now()

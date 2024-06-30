@@ -51,7 +51,7 @@ router.post('/register', upload.single(), async (req, res) => {
 
 })
 
-router.get('/:id', (req, res) => {
+router.get('/finduser/:id', (req, res) => {
   try {
     User.findById(req.params.id).then((users) => {
       res.json(users)
@@ -72,23 +72,6 @@ router.put('/update/:id', (req, res) => {
   }
 })
 
-router.put('/loginstatus/:id', async (req, res) => {
-  try {
-    const oldStatus = null
-    await User.findById(req.params.id).then((users) => {
-      oldStatus = users.statusLogin
-    })
-    if (oldStatus === req.body.statusLogin) {
-      res.status(200).json('still login')
-    } else {
-      await User.findByIdAndUpdate(req.params.id, req.body, { new: true }).then((users) => {
-        res.status(404).json(users)
-      })
-    }
-  } catch (err) {
-    console.error(err);
-  }
-})
 
 router.delete('/:id', (req, res) => {
   try {
