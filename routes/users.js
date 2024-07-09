@@ -13,9 +13,9 @@ const storage = multer.diskStorage({
 const upload = multer({ storage })
 
 
-router.get('/', (req, res) => {
+router.get('/', async (req, res) => {
   try {
-    User.find().then((users) => {
+    await User.find().then((users) => {
       res.json(users)
     })
   } catch (err) {
@@ -52,9 +52,9 @@ router.post('/register', async (req, res) => {
 
 })
 
-router.get('/finduser/:id', (req, res) => {
+router.get('/finduser/:id', async (req, res) => {
   try {
-    User.findById(req.params.id).then((users) => {
+    await User.findById(req.params.id).then((users) => {
       res.json(users)
     })
   } catch (err) {
@@ -76,27 +76,53 @@ router.put('/update/:id', (req, res) => {
 
 router.put('/updatePic/:id', upload.single('image'), async (req, res) => {
   try {
-    console.log(req.file);
     if (req.file.filename != '' || req.file.filename != null) {
       req.body.image = req.file.filename
+
+      const users = await User.findById(req.params.id)
+      if (users.image != '') {
+        fs.unlink('./uploads/' + users.image, (err) => {
+          if (err) {
+            console.log(err);
+          } else {
+            console.log('remove img success');
+          }
+        })
+      }
+
+      await User.findByIdAndUpdate(req.params.id, req.body, { new: true }).then((user) => res.json(user))
+
     } else {
       res.json(404, req.body)
     }
 
-    const users = await User.findById(req.params.id)
-    if (users.image != req.file.filename) {
-      await fs.unlink('./uploads/' + users.image, (err) => {
-        if (err) {
-          console.log(err);
-        } else {
-          console.log('remove img success');
-        }
-      })
-    }
+  } catch (err) {
+    console.error(err);
+  }
+})
 
-    await User.findByIdAndUpdate(req.params.id, req.body, { new: true }).then((user) => {
-      res.json(user)
-    })
+
+router.put('/updateCoverPhoto/:id', upload.single('CoverPhoto'), async (req, res) => {
+  try {
+    if (req.file.filename != '' || req.file.filename != null) {
+      req.body.cover_photo = req.file.filename
+
+      const users = await User.findById(req.params.id)
+      if (users.cover_photo != '') {
+        fs.unlink('./uploads/' + users.cover_photo, (err) => {
+          if (err) {
+            console.log(err);
+          } else {
+            console.log('remove cover photo success');
+          }
+        })
+      }
+
+      await User.findByIdAndUpdate(req.params.id, req.body, { new: true }).then((user) => res.json(user))
+
+    } else {
+      res.json(404, req.body)
+    }
 
   } catch (err) {
     console.error(err);
@@ -110,7 +136,26 @@ router.put('/deleteProfilePic/:id', async (req, res) => {
     await User.findByIdAndUpdate(req.params.id, req.body, { new: true }).then((user) => {
       res.json(user)
     })
-    await fs.unlink('./uploads/' + users.image, (err) => {
+    fs.unlink('./uploads/' + users.image, (err) => {
+      if (err) {
+        console.log(err);
+      } else {
+        console.log('remove img success');
+      }
+    })
+  } catch (err) {
+    console.error(err);
+  }
+})
+
+router.put('/deleteCoverPhoto/:id', async (req, res) => {
+  try {
+    req.body.cover_photo = ''
+    const users = await User.findById(req.params.id)
+    await User.findByIdAndUpdate(req.params.id, req.body, { new: true }).then((user) => {
+      res.json(user)
+    })
+    fs.unlink('./uploads/' + users.cover_photo, (err) => {
       if (err) {
         console.log(err);
       } else {
