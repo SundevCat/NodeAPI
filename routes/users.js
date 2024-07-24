@@ -62,6 +62,24 @@ router.get('/finduser/:id', async (req, res) => {
   }
 })
 
+router.get('/finduserpost/:id', async (req, res) => {
+  try {
+    await User.findById(req.params.id).then((users) => {
+
+      const mapData = {
+        userName: users.userName,
+        userLastName: users.userLastName,
+        image: users.image,
+      }
+      res.json(mapData)
+
+    })
+  } catch (err) {
+    console.error(err);
+  }
+})
+
+
 router.put('/update/:id', (req, res) => {
   try {
     console.log(req.body);

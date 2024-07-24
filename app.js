@@ -7,6 +7,7 @@ const mongoose = require('mongoose');
 const cors = require("cors")
 const products = require('./routes/products');
 const users = require('./routes/users')
+const posts = require('./routes/posts');
 const imageDetails = require('./routes/imageDetails');
 
 mongoose.Promise = global.Promise;
@@ -32,9 +33,10 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/upload',express.static('uploads'))
+app.use('/upload', express.static('uploads'))
 app.use('/', indexRouter);
 app.use('/users', users);
+app.use('/posts', posts);
 app.use('/image', imageDetails);
 app.use('/products', products);
 
