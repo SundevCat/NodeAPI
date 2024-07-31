@@ -1,19 +1,22 @@
 const express = require('express');
-const multer = require('multer')
+const multer = require('multer');
 const router = express.Router();
-const mongoose = require('mongoose')
-const User = require('../models/User.js')
+const mongoose = require('mongoose');
+const User = require('../models/User.js');
+const cookieParser = require('cookie-parser')
+const fs = require('fs');
 const bcrypt = require('bcryptjs')
-const fs = require('fs')
+const jwt = require('jsonwebtoken');
+const authenticateToken = require('../middleware/authenticate.js');
 
 const storage = multer.diskStorage({
   destination: (req, file, callback) => callback(null, './uploads'),
   filename: (req, file, callback) => callback(null, file.originalname)
 })
 const upload = multer({ storage })
+const secret = 'EiKf9vBVMW0Qiu6EWgzwU7PyCdD0BLxv7ks4kTe4fXvGPDYsS3QT3wugV4ReGopt'
 
-
-router.get('/', async (req, res) => {
+router.get('/', authenticateToken, async (req, res) => {
   try {
     await User.find().then((users) => {
       res.json(users)
@@ -27,9 +30,23 @@ router.post('/login', async (req, res) => {
   try {
     const user = await User.findOne({ userEmail: req.body.userEmail })
     if (user) {
-      res.json(user)
+      bcrypt.compare(req.body.password, user.password, async (err, match) => {
+        if (!match) {
+          res.status(400).json({
+            message: 'login failed (wrong email, password)'
+          })
+          return false
+        }
+        //สร้าง token jwt token  
+        const token = jwt.sign({ id: user._id, username: user.userName }, secret, { expiresIn: '8h' })
+        // res.cookie('token', token, {
+        //   secure: true,
+        //   httpOnly: true,
+        // })
+        res.json(token)
+      })
     } else {
-      res.status(404).json({ statusText: 'login failed' })
+      res.status(400).json({ message: 'login failed (wrong email, password)' })
     }
   } catch (err) {
     console.error(err);
@@ -39,11 +56,13 @@ router.post('/login', async (req, res) => {
 router.post('/register', async (req, res) => {
   try {
     const email = await User.find({ userEmail: req.body.userEmail })
+    console.log(email);
     if (email.length > 0) {
-      res.status(404).json(email)
+      res.status(409).json({ message: 'email already exists' })
     } else {
       User.create(req.body).then((users) => {
-        res.json(users)
+        const token = jwt.sign({ id: users._id, username: users.userName }, secret, { expiresIn: '8h' })
+        res.json(token)
       })
     }
   } catch (err) {
@@ -52,7 +71,7 @@ router.post('/register', async (req, res) => {
 
 })
 
-router.get('/finduser/:id', async (req, res) => {
+router.get('/finduser/:id', authenticateToken, async (req, res) => {
   try {
     await User.findById(req.params.id).then((users) => {
       res.json(users)
@@ -62,7 +81,7 @@ router.get('/finduser/:id', async (req, res) => {
   }
 })
 
-router.get('/finduserpost/:id', async (req, res) => {
+router.get('/finduserpost/:id', authenticateToken, async (req, res) => {
   try {
     await User.findById(req.params.id).then((users) => {
 
@@ -80,7 +99,7 @@ router.get('/finduserpost/:id', async (req, res) => {
 })
 
 
-router.put('/update/:id', (req, res) => {
+router.put('/update/:id', authenticateToken, (req, res) => {
   try {
     console.log(req.body);
     User.findByIdAndUpdate(req.params.id, req.body, { new: true }).then((users) => {
@@ -92,7 +111,7 @@ router.put('/update/:id', (req, res) => {
 })
 
 
-router.put('/updatePic/:id', upload.single('image'), async (req, res) => {
+router.put('/updatePic/:id', authenticateToken, upload.single('image'), async (req, res) => {
   try {
     if (req.file.filename != '' || req.file.filename != null) {
       req.body.image = req.file.filename
@@ -120,7 +139,7 @@ router.put('/updatePic/:id', upload.single('image'), async (req, res) => {
 })
 
 
-router.put('/updateCoverPhoto/:id', upload.single('CoverPhoto'), async (req, res) => {
+router.put('/updateCoverPhoto/:id', authenticateToken, upload.single('CoverPhoto'), async (req, res) => {
   try {
     if (req.file.filename != '' || req.file.filename != null) {
       req.body.cover_photo = req.file.filename
@@ -147,7 +166,7 @@ router.put('/updateCoverPhoto/:id', upload.single('CoverPhoto'), async (req, res
   }
 })
 
-router.put('/deleteProfilePic/:id', async (req, res) => {
+router.put('/deleteProfilePic/:id', authenticateToken, async (req, res) => {
   try {
     req.body.image = ''
     const users = await User.findById(req.params.id)
@@ -166,7 +185,7 @@ router.put('/deleteProfilePic/:id', async (req, res) => {
   }
 })
 
-router.put('/deleteCoverPhoto/:id', async (req, res) => {
+router.put('/deleteCoverPhoto/:id', authenticateToken, async (req, res) => {
   try {
     req.body.cover_photo = ''
     const users = await User.findById(req.params.id)
@@ -185,7 +204,7 @@ router.put('/deleteCoverPhoto/:id', async (req, res) => {
   }
 })
 
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', authenticateToken, async (req, res) => {
   try {
     const users = await User.findById(req.params.id)
     await User.findByIdAndDelete(req.params.id).exec().then((users) => {

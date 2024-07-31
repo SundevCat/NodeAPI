@@ -1,5 +1,6 @@
 //install libary
 npm i mongoose
+ืnpm i jsonwebtoken
 
 //install swagger
 npm install swagger-ui-express
